@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Writing Room</title>
+    <style>
+        body { background-color: #fffafb; font-family: 'Segoe UI', sans-serif; padding: 40px; margin: 0; }
+        
+        /* Nút Back to home xịn xò */
+        .back-home { 
+            text-decoration: none; 
+            color: #ffb6c1; 
+            font-size: 0.9rem; 
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            transition: 0.3s;
+        }
+        .back-home:hover { color: #ff8fa3; transform: translateX(-3px); }
+
+        .writing-container { display: flex; gap: 50px; max-width: 1100px; margin: 0 auto; margin-top: 20px; }
+        .left-panel, .right-panel { flex: 1; }
+        h2 { font-size: 1.5rem; color: #333; margin-bottom: 20px; }
+        .idea-item { margin-bottom: 5px; display: flex; align-items: center; gap: 10px; transition: all 0.3s; }
+        .inline-input { border: none; background: transparent; outline: none; width: 100%; font-family: inherit; font-size: 1rem; color: #666; padding: 5px; border-bottom: 1px solid transparent; }
+        .inline-input:focus { border-bottom: 1px dashed #ffb6c1; color: #333; }
+        .delete-btn { background: none; border: none; color: #eee; cursor: pointer; font-size: 1.2rem; transition: color 0.2s; }
+        .idea-item:hover .delete-btn { color: #ffb6c1; }
+        .cat-image { width: 100%; max-width: 400px; border-radius: 12px; margin-top: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        .calendar-box { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-home">⇠ back to home</a>
+
+    <div class="writing-container">
+        <div class="left-panel">
+            <h2>brain dump 🖋★</h2>
+            <form th:action="@{/add-idea}" method="post" style="margin-bottom: 30px;">
+                <input type="text" name="content" placeholder="+ New idea..." style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; outline: none; font-family: inherit;">
+            </form>
+            <div class="idea-list">
+                <div th:each="item : ${ideasList}" class="idea-item">
+                    <span>📄</span>
+                    <form th:action="@{/update-idea}" method="post" style="flex: 1;">
+                        <input type="hidden" name="id" th:value="${item.id}" />
+                        <input type="text" name="content" th:value="${item.content}" class="inline-input" onblur="this.form.submit()" title="Bấm để sửa, Enter để lưu">
+                    </form>
+                    <form th:action="@{/delete-idea}" method="post">
+                        <input type="hidden" name="id" th:value="${item.id}" />
+                        <button type="submit" class="delete-btn" title="Xóa">×</button>
+                    </form>
+                </div>
+            </div>
+            <img src="/cat-coffee.jpg" class="cat-image">
+            <p style="color: #999; margin-top: 10px;">you can do it!</p>
+        </div>
+        <div class="right-panel">
+            <h2>calendar 🗓★</h2>
+            <div class="calendar-box">
+                <iframe src="https://calendar.google.com/calendar/embed?height=400&wkst=1&bgcolor=%23ffffff&ctz=Asia%2FHo_Chi_Minh&src=vi.vietnamese%23holiday%40group.v.calendar.google.com&color=%230B8043" style="border-width:0" width="100%" height="400" frameborder="0" scrolling="no"></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

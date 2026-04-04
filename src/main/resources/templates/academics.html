@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Academic Station 🍦</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #fcfcfc; font-family: 'Quicksand', sans-serif; padding: 40px; color: #37352f; margin: 0; }
+        .header-nav { margin-bottom: 30px; }
+        .back-home { text-decoration: none; color: #ffb6c1; font-size: 0.95rem; font-weight: 500; }
+
+        .notion-layout { 
+            display: grid; 
+            grid-template-columns: 320px 1fr 300px; 
+            gap: 40px; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            align-items: start; 
+        }
+
+        .calendar-section iframe { border-radius: 12px; border: 1px solid #f0f0f0; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+
+        .center-section { display: flex; flex-direction: column; gap: 20px; }
+
+        .motivation-quote {
+            font-size: 1.6rem; font-weight: 500; color: #444; font-style: italic;
+            margin-bottom: 30px; letter-spacing: -0.5px;
+        }
+
+        .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .kanban-col { background: #f9f9f9; border-radius: 12px; padding: 15px; border: 1px solid #eee; }
+        .status-tag { padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-bottom: 15px; display: inline-block; }
+        
+        .task-card { 
+            background: white; border: 1px solid #e9e9e9; padding: 12px; border-radius: 8px; 
+            margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; justify-content: space-between;
+        }
+
+        /* Hiệu ứng khi bấm vào sửa */
+        .editable-text {
+            outline: none; flex-grow: 1; padding: 2px 5px; cursor: text;
+        }
+        .editable-text:focus {
+            background-color: #fff0f3; border-radius: 4px; box-shadow: 0 0 0 2px #ffb6c1;
+        }
+
+        .btn-del { border: none; background: none; color: #ccc; cursor: pointer; font-size: 1.1rem; }
+        .btn-del:hover { color: #ffb6c1; }
+
+        .add-form { margin-top: 10px; display: flex; gap: 5px; }
+        .add-form input { flex-grow: 1; border: 1px solid #eee; border-radius: 4px; padding: 6px; outline: none; font-size: 0.8rem; }
+        .btn-plus { background: #ffb6c1; color: white; border: none; border-radius: 4px; padding: 0 10px; cursor: pointer; }
+
+        .side-image { position: sticky; top: 40px; }
+        .side-image img { width: 100%; border-radius: 12px; box-shadow: 0 10px 25px rgba(255, 182, 193, 0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="header-nav">
+        <a href="/" class="back-home">⇠ back to home</a>
+    </div>
+
+    <div class="notion-layout">
+        <div class="calendar-section">
+            <h3 style="font-size: 0.9rem; margin-bottom: 15px; color: #888;">🗓️ DUE DATES</h3>
+            <iframe src="https://calendar.google.com/calendar/embed?height=400&wkst=1&bgcolor=%23ffffff&ctz=Asia%2FHo_Chi_Minh&src=vi.vietnamese%23holiday%40group.v.calendar.google.com&color=%230B8043" 
+                    width="100%" height="450" frameborder="0" scrolling="no"></iframe>
+        </div>
+
+        <div class="center-section">
+            <div class="motivation-quote">"Study now, be a rich artist later..." 🎨✨</div>
+
+            <div class="kanban-board">
+                <div class="kanban-col">
+                    <span class="status-tag" style="background: #efefef;">Not started</span>
+                    <div th:each="task : ${todoTasks}" class="task-card">
+                        <span class="editable-text" contenteditable="true" 
+                              th:text="${task.content}" th:attr="data-id=${task.id}"></span>
+                        <form th:action="@{/delete-academic-task}" method="post">
+                            <input type="hidden" name="id" th:value="${task.id}">
+                            <button type="submit" class="btn-del">×</button>
+                        </form>
+                    </div>
+                    <form th:action="@{/add-academic-task}" method="post" class="add-form">
+                        <input type="text" name="content" placeholder="+ New task" required>
+                        <input type="hidden" name="status" value="TODO">
+                        <button type="submit" class="btn-plus">+</button>
+                    </form>
+                </div>
+
+                <div class="kanban-col">
+                    <span class="status-tag" style="background: #e7f3f8; color: #1d4d5f;">In progress</span>
+                    <div th:each="task : ${doingTasks}" class="task-card">
+                        <span class="editable-text" contenteditable="true" 
+                              th:text="${task.content}" th:attr="data-id=${task.id}"></span>
+                        <form th:action="@{/delete-academic-task}" method="post">
+                            <input type="hidden" name="id" th:value="${task.id}">
+                            <button type="submit" class="btn-del">×</button>
+                        </form>
+                    </div>
+                    <form th:action="@{/add-academic-task}" method="post" class="add-form">
+                        <input type="text" name="content" placeholder="+ New task" required>
+                        <input type="hidden" name="status" value="DOING">
+                        <button type="submit" class="btn-plus">+</button>
+                    </form>
+                </div>
+
+                <div class="kanban-col">
+                    <span class="status-tag" style="background: #e9f5e9; color: #224b22;">Completed</span>
+                    <div th:each="task : ${doneTasks}" class="task-card">
+                        <span class="editable-text" contenteditable="true" 
+                              th:text="${task.content}" th:attr="data-id=${task.id}"
+                              style="text-decoration: line-through; opacity: 0.5;"></span>
+                        <form th:action="@{/delete-academic-task}" method="post">
+                            <input type="hidden" name="id" th:value="${task.id}">
+                            <button type="submit" class="btn-del">×</button>
+                        </form>
+                    </div>
+                    <form th:action="@{/add-academic-task}" method="post" class="add-form">
+                        <input type="text" name="content" placeholder="+ New task" required>
+                        <input type="hidden" name="status" value="DONE">
+                        <button type="submit" class="btn-plus">+</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="side-image">
+            <img src="/transferir.jpg" alt="study-vibe">
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.editable-text').forEach(el => {
+            el.addEventListener('blur', function() {
+                const id = this.getAttribute('data-id');
+                const content = this.innerText;
+
+                const params = new URLSearchParams();
+                params.append('id', id);
+                params.append('content', content);
+
+                fetch('/update-academic-task', {
+                    method: 'POST',
+                    body: params
+                }).then(res => {
+                    if(res.ok) console.log("Đã lưu!");
+                });
+            });
+        });
+    </script>
+</body>
+</html>

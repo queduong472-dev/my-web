@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Vision Board ⋆🕯️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #fff5f7; font-family: 'Quicksand', sans-serif; padding: 40px; color: #37352f; }
+        .back-home { text-decoration: none; color: #ffb6c1; font-size: 0.95rem; font-weight: 500; margin-bottom: 20px; display: block; }
+        
+        h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 10px; }
+        .sub-title { color: #8e8e8e; font-size: 0.9rem; margin-bottom: 30px; }
+
+        /* Form thêm ảnh nhỏ xinh */
+        .add-vision-form { 
+            background: white; padding: 12px; border-radius: 15px; 
+            display: inline-flex; gap: 10px; margin-bottom: 40px;
+            box-shadow: 0 5px 15px rgba(255, 182, 193, 0.2);
+        }
+        .add-vision-form input { border: 1px solid #eee; padding: 8px 15px; border-radius: 10px; width: 350px; outline: none; }
+        .add-vision-form button { background: #ffb6c1; color: white; border: none; padding: 8px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+
+        /* Grid ảnh kiểu Pinterest */
+        .vision-grid { 
+            columns: 3; /* Chia làm 3 cột tự động */
+            column-gap: 20px;
+        }
+
+        .vision-item {
+            position: relative;
+            margin-bottom: 20px; /* Khoảng cách giữa các ảnh dọc */
+            break-inside: avoid; /* Không để ảnh bị cắt đôi giữa 2 cột */
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: 0.3s;
+        }
+        .vision-item:hover { transform: scale(1.03); box-shadow: 0 10px 25px rgba(255, 182, 193, 0.3); }
+
+        .vision-item img { width: 100%; display: block; border-radius: 20px; }
+
+        /* Nút xóa ẩn */
+        .btn-del {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(255, 255, 255, 0.8); color: #ffb6c1;
+            border: none; border-radius: 50%; width: 28px; height: 28px;
+            cursor: pointer; opacity: 0; transition: 0.2s; font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .vision-item:hover .btn-del { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="back-home">⇠ back to home</a>
+    <h1>vision board ⋆🕯️</h1>
+    <p class="sub-title">"Manifesting my dream life, one picture at a time..."</p>
+
+    <div class="add-vision-form">
+        <form th:action="@{/add-vision}" method="post" style="display: flex; gap: 10px;">
+            <input type="text" name="imageUrl" placeholder="Paste Ghibli/Inspiration image link..." required>
+            <button type="submit">Add ⊹</button>
+        </form>
+    </div>
+
+    <div class="vision-grid">
+        <div th:each="v : ${visions}" class="vision-item">
+            <img th:src="${v.imageUrl}" alt="Vision Image">
+            <form th:action="@{/delete-vision}" method="post">
+                <input type="hidden" name="id" th:value="${v.id}">
+                <button type="submit" class="btn-del">×</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

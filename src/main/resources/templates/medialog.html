@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Watch & Read List 📽️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #fcfcfc; font-family: 'Quicksand', sans-serif; padding: 40px; color: #37352f; }
+        .back-home { text-decoration: none; color: #ffb6c1; font-size: 0.9rem; margin-bottom: 30px; display: block; }
+        
+        /* Grid 5 cột */
+        .media-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+
+        .media-card {
+            background: white; border-radius: 12px; overflow: hidden; border: 1px solid #efefef;
+            transition: 0.3s; position: relative;
+        }
+        .media-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+
+        /* Nút xóa ẩn ở góc */
+        .delete-btn { 
+            position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.3); color: white; 
+            border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; opacity: 0; transition: 0.2s;
+        }
+        .media-card:hover .delete-btn { opacity: 1; }
+
+        .cover-img { width: 100%; height: 160px; object-fit: cover; background: #fafafa; cursor: pointer; }
+
+        .card-content { padding: 15px; }
+        
+        /* Chỗ sửa tiêu đề */
+        .editable-title { font-weight: 600; font-size: 0.95rem; display: block; margin-bottom: 8px; outline: none; }
+        
+        /* Tag Status */
+        .status-select { 
+            border: none; border-radius: 4px; font-size: 0.7rem; padding: 2px 6px; 
+            cursor: pointer; margin-bottom: 8px; font-family: inherit;
+        }
+        .finished { background: #e9f5e9; color: #224b22; }
+        .in-progress { background: #fdf2e9; color: #854c1d; }
+
+        /* Rating sao */
+        .rating-input { border: none; color: #f1c40f; width: 50px; font-size: 0.8rem; outline: none; }
+
+        /* Form Add New */
+        .add-section { margin-bottom: 40px; background: #fff0f3; padding: 15px; border-radius: 10px; display: inline-block; }
+        .add-section input, .add-section select { border: 1px solid #ddd; padding: 5px; border-radius: 4px; margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="back-home">⇠ back to home</a>
+    <h1 style="margin-bottom: 10px;">watch/read list</h1>
+
+    <div class="add-section">
+        <form th:action="@{/add-media}" method="post">
+            <input type="text" name="title" placeholder="Tên phim/sách..." required>
+            <select name="type">
+                <option value="movie">movie</option><option value="book">book</option><option value="series">series</option>
+            </select>
+            <select name="status">
+                <option value="in progress">in progress</option><option value="finished">finished</option>
+            </select>
+            <button type="submit" style="background: #ffb6c1; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">+ New page</button>
+        </form>
+    </div>
+
+    <div class="media-grid">
+        <div th:each="item : ${mediaList}" class="media-card" th:attr="data-id=${item.id}">
+            <form th:action="@{/delete-media}" method="post">
+                <input type="hidden" name="id" th:value="${item.id}">
+                <button type="submit" class="delete-btn">×</button>
+            </form>
+
+            <img th:src="${item.imageUrl != '' ? item.imageUrl : 'https://via.placeholder.com/200x150?text=No+Image'}" 
+                 class="cover-img" title="Bấm để đổi link ảnh"
+                 onclick="changeImage(this)">
+
+            <div class="card-content">
+                <select class="status-select" 
+                        th:classappend="${item.status == 'finished' ? 'finished' : 'in-progress'}"
+                        onchange="updateMedia(this, 'status')">
+                    <option value="in progress" th:selected="${item.status == 'in progress'}">in progress</option>
+                    <option value="finished" th:selected="${item.status == 'finished'}">finished</option>
+                </select>
+
+                <span class="editable-title" contenteditable="true" 
+                      onblur="updateMedia(this, 'title')" th:text="${item.title}"></span>
+
+                <div style="font-size: 0.8rem;">
+                    ⭐ <input type="number" class="rating-input" th:value="${item.rating}" 
+                               min="1" max="5" onchange="updateMedia(this, 'rating')">
+                </div>
+
+                <select style="border: none; font-size: 0.75rem; color: #888; background: transparent;" 
+                        onchange="updateMedia(this, 'type')">
+                    <option value="movie" th:selected="${item.type == 'movie'}">movie</option>
+                    <option value="book" th:selected="${item.type == 'book'}">book</option>
+                    <option value="series" th:selected="${item.type == 'series'}">series</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Hàm gửi lệnh lưu về Java
+        function updateMedia(element, field) {
+            const card = element.closest('.media-card');
+            const id = card.getAttribute('data-id');
+            const value = (element.tagName === 'SPAN') ? element.innerText : element.value;
+
+            const params = new URLSearchParams();
+            params.append('id', id);
+            params.append('field', field);
+            params.append('value', value);
+
+            fetch('/update-media', { method: 'POST', body: params })
+            .then(res => { if(res.ok) console.log("Lưu thành công!"); });
+        }
+
+        // Hàm đổi ảnh khi bấm vào hình
+        function changeImage(imgElement) {
+            const newUrl = prompt("Dán link ảnh cover mới vào đây má ơi:", imgElement.src);
+            if (newUrl) {
+                imgElement.src = newUrl;
+                const card = imgElement.closest('.media-card');
+                const id = card.getAttribute('data-id');
+                
+                const params = new URLSearchParams();
+                params.append('id', id);
+                params.append('field', 'imageUrl');
+                params.append('value', newUrl);
+                fetch('/update-media', { method: 'POST', body: params });
+            }
+        }
+    </script>
+</body>
+</html>

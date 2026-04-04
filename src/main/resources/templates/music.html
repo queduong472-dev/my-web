@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Music Room 🎵</title>
+    <style>
+        body { background-color: #fffafb; font-family: 'Segoe UI', sans-serif; padding: 40px; color: #555; margin: 0; }
+        
+        /* Nút Back to home xịn xò */
+        .back-home { 
+            text-decoration: none; 
+            color: #ffb6c1; 
+            font-size: 0.9rem; 
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            transition: 0.3s;
+        }
+        .back-home:hover { color: #ff8fa3; transform: translateX(-3px); }
+
+        .music-container { display: flex; gap: 60px; max-width: 1100px; margin: 0 auto; }
+        .left-side { width: 350px; }
+        .right-side { flex: 1; }
+        h1 { font-size: 1.8rem; margin-bottom: 30px; margin-top: 20px; } /* Thêm margin-top để né nút back */
+        
+        .pink-box { 
+            background: #fff0f3; padding: 15px; border-radius: 15px; margin-bottom: 25px; 
+            font-size: 0.9rem; border-left: 5px solid #ffb6c1;
+            box-shadow: 0 4px 10px rgba(255,182,193,0.1); outline: none;
+            cursor: text;
+        }
+        
+        .song-item { margin-bottom: 35px; list-style: none; }
+        .delete-link { color: #ffb6c1; text-decoration: none; font-size: 0.7rem; cursor: pointer; border: none; background: none; padding: 0; }
+        .delete-link:hover { text-decoration: underline; color: #ff8fa3; }
+
+        .exercise-item { background: white; border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
+        .checkbox-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ffb6c1; cursor: pointer; background: white; transition: 0.3s; }
+        .completed-text { text-decoration: line-through; opacity: 0.5; }
+        
+        /* Hiệu ứng khi đang sửa chữ */
+        [contenteditable="true"]:focus {
+            background: #fff8f9;
+            padding: 2px 5px;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(255,182,193,0.5);
+        }
+
+        .add-form { margin-top: 15px; display: flex; flex-direction: column; gap: 8px; background: #fff; padding: 15px; border-radius: 12px; border: 1px dashed #ffb6c1; }
+        .add-form input { padding: 10px; border: 1px solid #eee; border-radius: 8px; outline: none; font-size: 0.8rem; }
+        .add-btn { background: #ffb6c1; color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .add-btn:hover { background: #ff8fa3; }
+    </style>
+</head>
+<body>
+
+    <a href="/" class="back-home">⇠ back to home</a>
+
+    <div style="max-width: 1100px; margin: 0 auto;">
+        <h1>music ✨ + ˚ (template)</h1>
+
+        <div class="music-container">
+            <div class="left-side">
+                <p><strong>songs i'd like to work on:</strong></p>
+                <ul style="padding: 0;">
+                    <li class="song-item" th:each="song : ${songsList}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span>• 
+                                <span class="editable-title" 
+                                      contenteditable="true" 
+                                      th:text="${song.title}" 
+                                      style="font-weight: bold; outline: none;">Tên bài</span>
+                            </span>
+                            <form th:action="@{/delete-song}" method="post">
+                                <input type="hidden" name="id" th:value="${song.id}" />
+                                <button type="submit" class="delete-link">[ xóa ]</button>
+                            </form>
+                        </div>
+                        
+                        <iframe width="100%" height="200" 
+                            th:src="${'https://www.youtube.com/embed/' + song.spotifyId}" 
+                            title="YouTube video player" frameborder="0" allowfullscreen 
+                            style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        </iframe>
+                    </li>
+                </ul>
+
+                <form th:action="@{/add-song}" method="get" class="add-form">
+                    <input type="text" name="title" placeholder="Tên bài hát..." required>
+                    <input type="text" name="spotifyId" placeholder="YouTube ID..." required>
+                    <button type="submit" class="add-btn">Thêm nhạc Chill ✨</button>
+                </form>
+                
+                <img src="/melody-player.jpg" style="width: 100%; border-radius: 15px; margin-top: 30px; opacity: 0.9;">
+            </div>
+
+            <div class="right-side">
+                <div class="pink-box" contenteditable="true">💗 music class: every friday at 3:00</div>
+                
+                <h3>exercises</h3>
+                <div th:each="ex : ${exercisesList}" class="exercise-item">
+                    <form th:action="@{/toggle-exercise}" method="post">
+                        <input type="hidden" name="id" th:value="${ex.id}" />
+                        <button type="submit" class="checkbox-btn" 
+                                th:style="${ex.completed ? 'background: #ffb6c1 !important; border-color: #ffb6c1 !important' : ''}"></button>
+                    </form>
+                    
+                    <span class="editable-content" 
+                          contenteditable="true" 
+                          th:text="${ex.content}" 
+                          th:classappend="${ex.completed ? 'completed-text' : ''}"
+                          style="outline: none; flex: 1;">Nội dung</span>
+
+                    <form th:action="@{/delete-exercise}" method="post">
+                        <input type="hidden" name="id" th:value="${ex.id}" />
+                        <button type="submit" class="delete-link" style="font-size: 1.1rem;">×</button>
+                    </form>
+                </div>
+                
+                <form th:action="@{/add-exercise}" method="get" class="add-form" style="border: none; padding: 0; background: transparent;">
+                    <input type="text" name="content" placeholder="+ New exercise..." required>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('[contenteditable="true"]').forEach(element => {
+            element.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); 
+                    this.blur(); 
+                    console.log("Đã tạm lưu: " + this.innerText);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

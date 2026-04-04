@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Routine 🩰</title>
+    <style>
+        body { background-color: #fffafb; font-family: 'Segoe UI', sans-serif; padding: 40px; color: #555; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .back-link { text-decoration: none; color: #ffb6c1; font-size: 0.8rem; margin-bottom: 20px; display: inline-block; }
+        h1 { font-size: 1.8rem; margin-bottom: 30px; font-weight: normal; color: #444; text-align: center; }
+        .routine-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .routine-column { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #fff0f3; min-height: 400px; }
+        .routine-column h3 { font-size: 1rem; color: #ffb6c1; border-bottom: 1px solid #fff0f3; padding-bottom: 10px; text-align: center; margin-top: 0; }
+        .task-item { display: flex; align-items: center; margin-bottom: 12px; gap: 10px; font-size: 0.9rem; }
+        .task-item input[type="checkbox"] { accent-color: #ffb6c1; width: 18px; height: 18px; cursor: pointer; }
+        .task-text { flex: 1; outline: none; }
+        input:checked + .task-text { text-decoration: line-through; color: #ccc; }
+        .delete-btn { color: #eee; cursor: pointer; font-size: 1.1rem; border: none; background: none; transition: 0.2s; }
+        .task-item:hover .delete-btn { color: #ffb6c1; }
+        .add-mini-form { margin-top: 15px; display: flex; gap: 5px; border-top: 1px dashed #fff0f3; padding-top: 15px; }
+        .add-mini-form input { border: 1px solid #eee; padding: 8px; border-radius: 8px; font-size: 0.8rem; flex: 1; outline: none; }
+        .btn-mini { background: #ffb6c1; color: white; border: none; border-radius: 8px; cursor: pointer; padding: 5px 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">⇠ back to home</a>
+        <h1>daily routines 🩰</h1>
+
+        <div class="routine-grid">
+            <div th:each="cat : ${ {'Sáng', 'Chiều', 'Tối'} }" class="routine-column">
+                <h3 th:text="${cat == 'Sáng' ? '✨ Morning' : (cat == 'Chiều' ? '☀️ Afternoon' : '🌙 Evening')}"></h3>
+                
+                <div class="task-list">
+                    <div th:each="item : ${routineList}" th:if="${item.routineSession == cat}" class="task-item">
+                        <input type="checkbox" th:checked="${item.completed}" 
+                               th:onchange="|toggleTask(${item.id}, this.checked)|">
+                        
+                        <span class="task-text" th:text="${item.content}"></span>
+                        
+                        <form th:action="@{/delete-routine}" method="post" style="display:inline;">
+                            <input type="hidden" name="id" th:value="${item.id}">
+                            <button type="submit" class="delete-btn">×</button>
+                        </form>
+                    </div>
+                </div>
+
+                <form th:action="@{/add-routine}" method="post" class="add-mini-form">
+                    <input type="hidden" name="session" th:value="${cat}">
+                    <input type="text" name="content" placeholder="New task..." required>
+                    <button type="submit" class="btn-mini">+</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function toggleTask(id, isCompleted) {
+            // Sửa dấu cộng chuỗi cho an toàn với Thymeleaf
+            fetch('/toggle-routine?id=' + id + '&completed=' + isCompleted);
+        }
+    </script>
+</body>
+</html>

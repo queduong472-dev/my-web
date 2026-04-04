@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Góc nhỏ của mèo con</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; background-color: #fff5f7; font-family: 'Quicksand', sans-serif; color: #37352f; }
+
+        .home-cover {
+            width: 100%; height: 180px; 
+            background-image: url('/pixel-banner.png'); 
+            background-size: cover; background-position: center;
+            border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(255, 182, 193, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .container {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px;
+            max-width: 1200px; margin: 0 auto 40px auto; padding: 0 20px;
+        }
+
+        /* Style cho Card thỏ */
+        .column {
+            background: white; padding: 20px; border-radius: 25px;
+            box-shadow: 0 8px 20px rgba(255, 182, 193, 0.15); transition: 0.3s;
+        }
+        .column:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(255, 182, 193, 0.3); }
+
+        .image-arch {
+            width: 100%; height: 250px; background-size: cover; background-position: center;
+            border-radius: 125px 125px 25px 25px; margin-bottom: 20px; border: 5px solid white;
+        }
+
+        .arc-1 { background-image: url('/hobbies.jpg'); }
+        .arc-2 { background-image: url('/personal.jpg'); }
+        .arc-3 { background-image: url('/school.jpg'); }
+        .arc-4 { background-image: url('/logs.jpg'); }
+
+        ul { padding: 0; list-style: none; }
+        ul li { margin-bottom: 10px; text-align: center; }
+        ul li a { text-decoration: none; color: #777; transition: 0.3s; }
+        ul li a:hover { color: #ffb6c1 !important; }
+
+        /* --- VÙNG VISION BOARD TRÊN TRANG CHỦ --- */
+        .vision-section {
+            max-width: 1200px; margin: 60px auto; padding: 0 20px;
+        }
+        .vision-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; border-bottom: 2px solid #ffb6c1; padding-bottom: 10px;
+        }
+        .vision-grid-home {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+        }
+        .vision-item-home {
+            height: 200px; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .vision-item-home img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .header-section { text-align: center; padding: 20px 0 40px 0; }
+        h1 { font-size: 2.2rem; color: #4a4a4a; }
+        .quote { color: #8e8e8e; font-style: italic; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <div class="home-cover"></div>
+
+    <header class="header-section">
+        <h1>Góc nhỏ của mèo con <span>⋆🪄₊˚</span></h1>
+        <p class="quote">you may be on my mind, everyday baby, say you're mine</p>
+    </header>
+
+    <main class="container">
+        <div class="column">
+            <div class="image-arch arc-1"></div>
+            <h3 style="text-align: center;">✧ hobbies ✧</h3>
+            <ul>
+                <li><a href="/writing">🍰 writing ⊹ ₊˚</a></li>
+                <li><a href="/music">🧸 music ⊹ ₊˚</a></li>
+                <li><a href="/gallery">🌷 vẽ vời ⊹ ₊˚</a></li>
+            </ul>
+        </div>
+        <div class="column">
+            <div class="image-arch arc-2"></div>
+            <h3 style="text-align: center;">✧ personal ✧</h3>
+            <ul>
+                <li><a href="/daily">🧼 daily ⊹ ₊˚</a></li>
+                <li><a href="/routine">🩰 routine ⊹ ₊˚</a></li>
+                <li><a href="/diary">🍑 nhật kí linh tinh</a></li>
+            </ul>
+        </div>
+        <div class="column">
+            <div class="image-arch arc-3"></div>
+            <h3 style="text-align: center;">✧ school ✧</h3>
+            <ul>
+                <li><a href="/academics">🍦 academics ⊹ ₊˚</a></li>
+            </ul>
+        </div>
+        <div class="column">
+            <div class="image-arch arc-4"></div>
+            <h3 style="text-align: center;">✧ logs ✧</h3>
+            <ul>
+                <li><a href="/medialog">📽️ media log ⊹ ₊˚</a></li>
+            </ul>
+        </div>
+    </main>
+
+    <section class="vision-section">
+        <div class="vision-header">
+            <h2 style="margin: 0; color: #4a4a4a;">vision board 🕯️⋆</h2>
+            <a href="/vision" style="text-decoration: none; color: #ffb6c1; font-size: 0.9rem;">Edit Board ⇢</a>
+        </div>
+        
+        <div class="vision-grid-home">
+            <div th:each="v, iterStat : ${visions}" th:if="${iterStat.index < 6}" class="vision-item-home">
+                <img th:src="${v.imageUrl}">
+            </div>
+            <div th:if="${#lists.isEmpty(visions)}" style="grid-column: span 3; text-align: center; color: #ccc; padding: 40px;">
+                Chưa có ảnh tầm nhìn nào... Bấm "Edit Board" để thêm nhe má!
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>

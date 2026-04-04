@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Vẽ vời 🌷</title>
+    <style>
+        body { background-color: #fffafb; font-family: 'Segoe UI', sans-serif; padding: 40px; margin: 0; }
+        .back-home { text-decoration: none; color: #ffb6c1; font-size: 0.9rem; position: absolute; top: 20px; left: 20px; transition: 0.3s; }
+        .back-home:hover { color: #ff9baa; transform: translateX(-3px); }
+        h1 { text-align: center; color: #444; font-weight: normal; margin-top: 20px; letter-spacing: 2px; }
+        .subtitle { text-align: center; color: #ffb6c1; margin-bottom: 40px; font-style: italic; font-size: 0.9rem; }
+
+        /* Form dán link tranh */
+        .add-form { max-width: 800px; margin: 0 auto 50px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); border: 1px dashed #ffb6c1; display: flex; gap: 10px; }
+        .add-form input { flex: 1; border: 1px solid #eee; padding: 12px; border-radius: 12px; outline: none; font-family: inherit; font-size: 0.9rem; }
+        .add-btn { background: #ffb6c1; color: white; border: none; padding: 0 25px; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .add-btn:hover { background: #ff9baa; transform: scale(1.05); }
+
+        /* Grid phòng tranh kiểu Pinterest */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; padding-bottom: 50px; }
+        .art-card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); position: relative; transition: 0.4s; border: 1px solid #fff0f3; }
+        .art-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(255,182,193,0.2); }
+        
+        .art-card img { width: 100%; border-radius: 10px; display: block; object-fit: cover; max-height: 500px; }
+        .art-title { text-align: center; margin-top: 15px; color: #777; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; border-top: 1px solid #fffafb; padding-top: 10px; }
+
+        /* Nút xóa ẩn, chỉ hiện khi hover */
+        .del-btn { position: absolute; top: -10px; right: -10px; background: #ffb6c1; color: white; border: none; width: 25px; height: 25px; border-radius: 50%; cursor: pointer; display: none; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .art-card:hover .del-btn { display: block; }
+        .del-btn:hover { background: #ff4d4d; }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-home">⇠ back to home</a>
+    <h1>Art Gallery 🌷</h1>
+    <div class="subtitle">nơi mèo con lưu giữ những nét vẽ mộng mơ...</div>
+
+    <form th:action="@{/add-art}" method="post" class="add-form">
+        <input type="text" name="title" placeholder="Tên tác phẩm..." required>
+        <input type="text" name="imageUrl" placeholder="Dán link ảnh vào đây (Imgur, Pinterest, hoặc địa chỉ ảnh...)" required>
+        <button type="submit" class="add-btn">Treo tranh ✨</button>
+    </form>
+
+    <div class="gallery-grid">
+        <div th:each="art : ${artworks}" class="art-card">
+            <form th:action="@{/delete-art}" method="post">
+                <input type="hidden" name="id" th:value="${art.id}">
+                <button type="submit" class="del-btn" title="Gỡ tranh này xuống nhe?">×</button>
+            </form>
+            <img th:src="${art.imageUrl}" alt="Artwork by Minh ảnh">
+            <div class="art-title" th:text="${art.title}"></div>
+        </div>
+        
+        <div th:if="${#lists.isEmpty(artworks)}" style="grid-column: 1/-1; text-align: center; color: #ccc; margin-top: 50px; font-style: italic;">
+            Chưa có bức tranh nào được treo lên cả... 🎨
+        </div>
+    </div>
+</body>
+</html>
