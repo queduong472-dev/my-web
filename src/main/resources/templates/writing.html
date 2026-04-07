@@ -5,19 +5,8 @@
     <title>Writing Room</title>
     <style>
         body { background-color: #fffafb; font-family: 'Segoe UI', sans-serif; padding: 40px; margin: 0; }
-        
-        /* Nút Back to home xịn xò */
-        .back-home { 
-            text-decoration: none; 
-            color: #ffb6c1; 
-            font-size: 0.9rem; 
-            position: absolute; 
-            top: 20px; 
-            left: 20px; 
-            transition: 0.3s;
-        }
+        .back-home { text-decoration: none; color: #ffb6c1; font-size: 0.9rem; position: absolute; top: 20px; left: 20px; transition: 0.3s; }
         .back-home:hover { color: #ff8fa3; transform: translateX(-3px); }
-
         .writing-container { display: flex; gap: 50px; max-width: 1100px; margin: 0 auto; margin-top: 20px; }
         .left-panel, .right-panel { flex: 1; }
         h2 { font-size: 1.5rem; color: #333; margin-bottom: 20px; }
@@ -32,7 +21,6 @@
 </head>
 <body>
     <a href="/" class="back-home">⇠ back to home</a>
-
     <div class="writing-container">
         <div class="left-panel">
             <h2>brain dump 🖋★</h2>
@@ -42,13 +30,16 @@
             <div class="idea-list">
                 <div th:each="item : ${ideasList}" class="idea-item">
                     <span>📄</span>
-                    <form th:action="@{/update-idea}" method="post" style="flex: 1;">
+                    <form th:action="@{/update-idea}" method="post" style="flex: 1; display: flex; align-items: center;">
                         <input type="hidden" name="id" th:value="${item.id}" />
-                        <input type="text" name="content" th:value="${item.content}" class="inline-input" onblur="this.form.submit()" title="Bấm để sửa, Enter để lưu">
+                        <input type="text" name="content" th:value="${item.content}" class="inline-input" 
+                               onblur="if(this.value !== this.defaultValue) this.form.submit();"
+                               title="Bấm để sửa, Enter để lưu">
+                        <button type="submit" style="display: none;"></button>
                     </form>
                     <form th:action="@{/delete-idea}" method="post">
                         <input type="hidden" name="id" th:value="${item.id}" />
-                        <button type="submit" class="delete-btn" title="Xóa">×</button>
+                        <button type="submit" class="delete-btn">×</button>
                     </form>
                 </div>
             </div>
