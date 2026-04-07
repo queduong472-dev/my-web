@@ -37,7 +37,6 @@ public class WebController {
         return "login";
     }
 
-    // SỬA TẠI ĐÂY NÈ MÁ: Để trang chủ hiện được ảnh Vision Board
     @GetMapping("/")
     public String indexPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -153,7 +152,7 @@ public class WebController {
         return "redirect:/routine";
     }
 
-    // --- QUẢN LÝ DAILY, MUSIC, WRITING ---
+    // --- QUẢN LÝ DAILY ---
     @GetMapping("/daily")
     public String dailyPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -161,7 +160,7 @@ public class WebController {
         return "daily";
     }
 
-    @GetMapping("/add-daily")
+    @PostMapping("/add-daily")
     public String addDaily(@RequestParam String date, @RequestParam String grateful, @RequestParam int rating, @RequestParam String emotion) {
         Map<String, Object> entry = new HashMap<>();
         entry.put("id", System.currentTimeMillis());
@@ -179,6 +178,7 @@ public class WebController {
         return "redirect:/daily";
     }
 
+    // --- QUẢN LÝ MUSIC & EXERCISE (FIXED) ---
     @GetMapping("/music")
     public String musicPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -187,9 +187,11 @@ public class WebController {
         return "music";
     }
 
-    @GetMapping("/add-song")
+    @PostMapping("/add-song")
     public String addSong(@RequestParam String title, @RequestParam String spotifyId) {
-        songRepository.save(new Song(title, spotifyId));
+        if (title != null && !title.trim().isEmpty()) {
+            songRepository.save(new Song(title, spotifyId));
+        }
         return "redirect:/music";
     }
 
@@ -199,6 +201,32 @@ public class WebController {
         return "redirect:/music";
     }
 
+    // ĐÃ FIX: Khớp hoàn toàn với Exercise(content) của má
+    @PostMapping("/add-exercise")
+    public String addExercise(@RequestParam String content) {
+        if (content != null && !content.trim().isEmpty()) {
+            exerciseRepository.save(new Exercise(content));
+        }
+        return "redirect:/music";
+    }
+
+    @PostMapping("/delete-exercise")
+    public String deleteExercise(@RequestParam Long id) {
+        exerciseRepository.deleteById(id);
+        return "redirect:/music";
+    }
+
+    @PostMapping("/toggle-exercise")
+    public String toggleExercise(@RequestParam Long id) {
+        Exercise ex = exerciseRepository.findById(id).orElse(null);
+        if (ex != null) {
+            ex.setCompleted(!ex.isCompleted());
+            exerciseRepository.save(ex);
+        }
+        return "redirect:/music";
+    }
+
+    // --- QUẢN LÝ WRITING ---
     @GetMapping("/writing")
     public String writingPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
