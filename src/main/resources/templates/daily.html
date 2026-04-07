@@ -8,19 +8,12 @@
         .container { max-width: 1000px; margin: 0 auto; }
         .back-link { text-decoration: none; color: #ffb6c1; font-size: 0.8rem; margin-bottom: 20px; display: inline-block; }
         h1 { font-size: 1.8rem; margin-bottom: 30px; font-weight: normal; color: #444; }
-        
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         th { text-align: left; padding: 12px; color: #999; font-weight: normal; font-size: 0.8rem; border-bottom: 1px solid #eee; background: #fafafa; }
         td { padding: 15px 12px; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem; }
-        
-        /* Hiệu ứng sửa văn bản */
         .edit-text { outline: none; padding: 2px 5px; border-radius: 4px; transition: 0.2s; min-width: 20px; display: inline-block; }
         .edit-text:focus { background: #fff0f3; box-shadow: 0 0 5px rgba(255,182,193,0.5); }
-
-        /* Style riêng cho tag Emotion */
         .emotion-tag { background: #fef0f2; padding: 4px 10px; border-radius: 5px; cursor: pointer; display: inline-block; }
-        .emotion-select { border: 1px solid #ffb6c1; border-radius: 4px; outline: none; font-size: 0.9rem; }
-        
         .add-form { margin-top: 30px; display: flex; gap: 10px; background: #fff; padding: 20px; border-radius: 12px; border: 1px dashed #ffb6c1; }
         .add-form input, .add-form select { border: 1px solid #eee; padding: 8px 12px; border-radius: 8px; outline: none; font-size: 0.85rem; }
         .btn-add { background: #ffb6c1; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
@@ -30,7 +23,6 @@
     <div class="container">
         <a href="/" class="back-link">⇠ back to home</a>
         <h1>how was your day? 🏹</h1>
-        
         <table>
             <thead>
                 <tr>
@@ -43,16 +35,13 @@
             </thead>
             <tbody>
                 <tr th:each="entry : ${dailyList}">
-                    <td><div contenteditable="true" class="edit-cell edit-text" th:data-id="${entry.id}" data-field="date" th:text="${entry.date}"></div></td>
-                    <td><div contenteditable="true" class="edit-cell edit-text" th:data-id="${entry.id}" data-field="grateful" th:text="${entry.grateful}"></div></td>
-                    <td><div contenteditable="true" class="edit-cell edit-text" th:data-id="${entry.id}" data-field="rating" th:text="${entry.rating}"></div></td>
-                    
-                    <td>
-                        <div class="emotion-container" th:data-id="${entry.id}">
-                            <span class="emotion-tag" th:text="${entry.emotion}" onclick="switchToSelect(this)">😆</span>
-                        </div>
-                    </td>
-                    
+                    <td><div contenteditable="true" class="edit-text" th:text="${entry.date}" 
+                             th:onblur="|updateDaily('${entry.id}', 'date', this.innerText)|"></div></td>
+                    <td><div contenteditable="true" class="edit-text" th:text="${entry.grateful}" 
+                             th:onblur="|updateDaily('${entry.id}', 'grateful', this.innerText)|"></div></td>
+                    <td><div contenteditable="true" class="edit-text" th:text="${entry.rating}" 
+                             th:onblur="|updateDaily('${entry.id}', 'rating', this.innerText)|"></div></td>
+                    <td><span class="emotion-tag" th:text="${entry.emotion}">😆</span></td>
                     <td>
                         <form th:action="@{/delete-daily}" method="post">
                             <input type="hidden" name="id" th:value="${entry.id}" />
@@ -63,7 +52,7 @@
             </tbody>
         </table>
 
-        <form th:action="@{/add-daily}" method="get" class="add-form">
+        <form th:action="@{/add-daily}" method="post" class="add-form">
             <input type="text" name="date" placeholder="Ngày..." style="width: 100px;" required>
             <input type="text" name="grateful" placeholder="Điều biết ơn..." style="flex: 1;" required>
             <input type="number" name="rating" min="1" max="5" value="5" style="width: 70px;">
@@ -77,54 +66,24 @@
     </div>
 
     <script>
-        // 1. Xử lý sửa văn bản (Ngày, Biết ơn, Rating)
-        document.querySelectorAll('.edit-text').forEach(cell => {
-            cell.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') { e.preventDefault(); this.blur(); }
-            });
-            cell.addEventListener('blur', function() {
-                updateData(this.getAttribute('data-id'), this.getAttribute('data-field'), this.innerText);
+        // Hàm cập nhật dữ liệu qua Ajax
+        function updateDaily(id, field, value) {
+            console.log("Đang cập nhật:", id, field, value);
+            fetch(`/update-daily?id=${id}&field=${field}&value=${encodeURIComponent(value)}`)
+                .then(response => {
+                    if(response.ok) console.log("Đã cập nhật thành công!");
+                });
+        }
+
+        // Chặn phím Enter để không làm vỡ bảng
+        document.querySelectorAll('.edit-text').forEach(el => {
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    el.blur();
+                }
             });
         });
-
-        // 2. Xử lý sửa Emotion bằng Dropdown
-        function switchToSelect(spanElement) {
-            const currentEmoji = spanElement.innerText;
-            const container = spanElement.parentElement;
-            const id = container.getAttribute('data-id');
-
-            const select = document.createElement('select');
-            select.className = 'emotion-select';
-            const emojis = ['😆', '🥰', '😴', '☁️', '🍑', '🌷', '🎀'];
-            
-            emojis.forEach(emoji => {
-                const opt = document.createElement('option');
-                opt.value = emoji;
-                opt.innerText = emoji;
-                if (emoji === currentEmoji) opt.selected = true;
-                select.appendChild(opt);
-            });
-
-            select.onchange = function() {
-                const newValue = this.value;
-                updateData(id, 'emotion', newValue);
-                container.innerHTML = `<span class="emotion-tag" onclick="switchToSelect(this)">${newValue}</span>`;
-            };
-
-            select.onblur = function() {
-                container.innerHTML = `<span class="emotion-tag" onclick="switchToSelect(this)">${currentEmoji}</span>`;
-            };
-
-            container.innerHTML = '';
-            container.appendChild(select);
-            select.focus();
-        }
-
-        // Hàm gửi dữ liệu về Java
-        function updateData(id, field, value) {
-            fetch(`/update-daily?id=${id}&field=${field}&value=${encodeURIComponent(value)}`)
-                .then(response => console.log("Updated " + field));
-        }
     </script>
 </body>
 </html>

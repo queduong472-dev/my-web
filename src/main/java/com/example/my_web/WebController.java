@@ -44,7 +44,59 @@ public class WebController {
         return "index";
     }
 
-    // --- QUẢN LÝ VISION BOARD ---
+    // --- QUẢN LÝ ROUTINE (BẢN CHUẨN 3 CỘT) ---
+    @GetMapping("/routine")
+    public String routinePage(Model model, HttpSession session) {
+        if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
+        // Lấy toàn bộ danh sách để Thymeleaf tự lọc theo session (Morning, Afternoon, Evening)
+        model.addAttribute("routineList", routineRepository.findAll());
+        return "routine";
+    }
+
+    @PostMapping("/add-routine")
+    public String addRoutine(@RequestParam String content, @RequestParam String session) {
+        if (content != null && !content.trim().isEmpty()) {
+            routineRepository.save(new Routine(content, session));
+        }
+        return "redirect:/routine";
+    }
+
+    // Hàm đa năng: Vừa toggle check, vừa lưu nội dung khi sửa chữ
+    @PostMapping("/update-routine-status")
+    @ResponseBody
+    public String updateRoutineStatus(@RequestParam Long id, 
+                                    @RequestParam(required = false) Boolean completed, 
+                                    @RequestParam(required = false) String content) {
+        Routine rt = routineRepository.findById(id).orElse(null);
+        if (rt != null) {
+            if (completed != null) rt.setCompleted(completed);
+            if (content != null) rt.setContent(content);
+            routineRepository.save(rt);
+            return "OK";
+        }
+        return "Error";
+    }
+
+    @GetMapping("/toggle-routine")
+    @ResponseBody
+    public String toggleRoutine(@RequestParam Long id, @RequestParam boolean completed) {
+        Routine rt = routineRepository.findById(id).orElse(null);
+        if (rt != null) {
+            rt.setCompleted(completed);
+            routineRepository.save(rt);
+            return "OK";
+        }
+        return "Error";
+    }
+
+    @PostMapping("/delete-routine")
+    public String deleteRoutine(@RequestParam Long id) {
+        routineRepository.deleteById(id);
+        return "redirect:/routine";
+    }
+
+    // --- CÁC MỤC KHÁC (GIỮ NGUYÊN BẢN FIX) ---
+
     @GetMapping("/vision")
     public String visionPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -66,7 +118,6 @@ public class WebController {
         return "redirect:/vision";
     }
 
-    // --- QUẢN LÝ GALLERY ---
     @GetMapping("/gallery")
     public String galleryPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -88,7 +139,6 @@ public class WebController {
         return "redirect:/gallery";
     }
 
-    // --- QUẢN LÝ DIARY ---
     @GetMapping("/diary")
     public String diaryPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -120,39 +170,6 @@ public class WebController {
         return "redirect:/diary";
     }
 
-    // --- QUẢN LÝ ROUTINE ---
-    @GetMapping("/routine")
-    public String routinePage(Model model, HttpSession session) {
-        if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
-        model.addAttribute("routineList", routineRepository.findAll());
-        return "routine";
-    }
-
-    @PostMapping("/add-routine")
-    public String addRoutine(@RequestParam String content, @RequestParam String session) {
-        routineRepository.save(new Routine(content, session));
-        return "redirect:/routine";
-    }
-
-    @GetMapping("/toggle-routine")
-    @ResponseBody
-    public String toggleRoutine(@RequestParam Long id, @RequestParam boolean completed) {
-        Routine rt = routineRepository.findById(id).orElse(null);
-        if (rt != null) {
-            rt.setCompleted(completed);
-            routineRepository.save(rt);
-            return "OK";
-        }
-        return "Error";
-    }
-
-    @PostMapping("/delete-routine")
-    public String deleteRoutine(@RequestParam Long id) {
-        routineRepository.deleteById(id);
-        return "redirect:/routine";
-    }
-
-    // --- QUẢN LÝ DAILY ---
     @GetMapping("/daily")
     public String dailyPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -174,11 +191,22 @@ public class WebController {
 
     @PostMapping("/delete-daily")
     public String deleteDaily(@RequestParam Long id) {
-        dailyList.removeIf(entry -> entry.get("id").equals(id));
+        dailyList.removeIf(entry -> entry.get("id").toString().equals(id.toString()));
         return "redirect:/daily";
     }
 
-    // --- QUẢN LÝ MUSIC & EXERCISE (FIXED) ---
+    @GetMapping("/update-daily")
+    @ResponseBody
+    public String updateDaily(@RequestParam Long id, @RequestParam String field, @RequestParam String value) {
+        for (Map<String, Object> entry : dailyList) {
+            if (entry.get("id").toString().equals(id.toString())) {
+                entry.put(field, value);
+                return "OK";
+            }
+        }
+        return "Error";
+    }
+
     @GetMapping("/music")
     public String musicPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -201,7 +229,6 @@ public class WebController {
         return "redirect:/music";
     }
 
-    // ĐÃ FIX: Khớp hoàn toàn với Exercise(content) của má
     @PostMapping("/add-exercise")
     public String addExercise(@RequestParam String content) {
         if (content != null && !content.trim().isEmpty()) {
@@ -226,7 +253,6 @@ public class WebController {
         return "redirect:/music";
     }
 
-    // --- QUẢN LÝ WRITING ---
     @GetMapping("/writing")
     public String writingPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -246,7 +272,6 @@ public class WebController {
         return "redirect:/writing";
     }
 
-    // --- MỤC ACADEMICS (SCHOOL) ---
     @GetMapping("/academics")
     public String academicsPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -282,7 +307,6 @@ public class WebController {
         return "Error";
     }
 
-    // --- MỤC MEDIA LOG (LOGS) ---
     @GetMapping("/medialog")
     public String mediaLogPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
