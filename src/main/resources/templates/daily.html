@@ -13,7 +13,9 @@
         td { padding: 15px 12px; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem; }
         .edit-text { outline: none; padding: 2px 5px; border-radius: 4px; transition: 0.2s; min-width: 20px; display: inline-block; }
         .edit-text:focus { background: #fff0f3; box-shadow: 0 0 5px rgba(255,182,193,0.5); }
-        .emotion-tag { background: #fef0f2; padding: 4px 10px; border-radius: 5px; cursor: pointer; display: inline-block; }
+        /* Style cho cái dropdown trong bảng nhìn cho xịn */
+        .emotion-select { border: none; background: #fef0f2; padding: 4px 8px; border-radius: 5px; cursor: pointer; font-family: inherit; font-size: 1rem; outline: none; }
+        .emotion-select:focus { background: #fff0f3; }
         .add-form { margin-top: 30px; display: flex; gap: 10px; background: #fff; padding: 20px; border-radius: 12px; border: 1px dashed #ffb6c1; }
         .add-form input, .add-form select { border: 1px solid #eee; padding: 8px 12px; border-radius: 8px; outline: none; font-size: 0.85rem; }
         .btn-add { background: #ffb6c1; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
@@ -41,7 +43,19 @@
                              th:onblur="|updateDaily('${entry.id}', 'grateful', this.innerText)|"></div></td>
                     <td><div contenteditable="true" class="edit-text" th:text="${entry.rating}" 
                              th:onblur="|updateDaily('${entry.id}', 'rating', this.innerText)|"></div></td>
-                    <td><span class="emotion-tag" th:text="${entry.emotion}">😆</span></td>
+                    
+                    <td>
+                        <select class="emotion-select" th:onchange="|updateDaily('${entry.id}', 'emotion', this.value)|">
+                            <option th:value="${entry.emotion}" th:text="${entry.emotion}" selected></option>
+                            <option value="😆">😆</option>
+                            <option value="🥰">🥰</option>
+                            <option value="😴">😴</option>
+                            <option value="☁️">☁️</option>
+                            <option value="🍑">🍑</option>
+                            <option value="🌷">🌷</option>
+                        </select>
+                    </td>
+
                     <td>
                         <form th:action="@{/delete-daily}" method="post">
                             <input type="hidden" name="id" th:value="${entry.id}" />
@@ -66,7 +80,6 @@
     </div>
 
     <script>
-        // Hàm cập nhật dữ liệu qua Ajax
         function updateDaily(id, field, value) {
             console.log("Đang cập nhật:", id, field, value);
             fetch(`/update-daily?id=${id}&field=${field}&value=${encodeURIComponent(value)}`)
@@ -75,7 +88,6 @@
                 });
         }
 
-        // Chặn phím Enter để không làm vỡ bảng
         document.querySelectorAll('.edit-text').forEach(el => {
             el.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {

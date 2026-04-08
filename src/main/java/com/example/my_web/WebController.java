@@ -21,8 +21,7 @@ public class WebController {
     @Autowired private AcademicTaskRepository academicTaskRepository;
     @Autowired private MediaItemRepository mediaItemRepository;
     @Autowired private VisionItemRepository visionItemRepository;
-
-    private List<Map<String, Object>> dailyList = new ArrayList<>();
+    @Autowired private DailyEntryRepository dailyEntryRepository;
 
     // --- ĐĂNG NHẬP & BẢO VỆ ---
     @GetMapping("/login")
@@ -45,7 +44,7 @@ public class WebController {
         return "index";
     }
 
-    // --- 1. QUẢN LÝ ROUTINE ---
+    // --- 1. ROUTINE (GIAO DIỆN 3 CỘT) ---
     @GetMapping("/routine")
     public String routinePage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -67,25 +66,11 @@ public class WebController {
 
     @PostMapping("/update-routine-status")
     @ResponseBody
-    public String updateRoutineStatus(@RequestParam Long id, 
-                                    @RequestParam(required = false) Boolean completed, 
-                                    @RequestParam(required = false) String content) {
+    public String updateRoutineStatus(@RequestParam Long id, @RequestParam(required = false) Boolean completed, @RequestParam(required = false) String content) {
         Routine rt = routineRepository.findById(id).orElse(null);
         if (rt != null) {
             if (completed != null) rt.setCompleted(completed);
             if (content != null) rt.setContent(content);
-            routineRepository.save(rt);
-            return "OK";
-        }
-        return "Error";
-    }
-
-    @GetMapping("/toggle-routine")
-    @ResponseBody
-    public String toggleRoutine(@RequestParam Long id, @RequestParam boolean completed) {
-        Routine rt = routineRepository.findById(id).orElse(null);
-        if (rt != null) {
-            rt.setCompleted(completed);
             routineRepository.save(rt);
             return "OK";
         }
@@ -98,7 +83,7 @@ public class WebController {
         return "redirect:/routine";
     }
 
-    // --- 2. QUẢN LÝ NHẬT KÝ LINH TINH (DIARY) ---
+    // --- 2. DIARY (NHẬT KÝ LINH TINH - ĐÃ FIX AUTO LOAD) ---
     @GetMapping("/diary")
     public String diaryPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -117,15 +102,13 @@ public class WebController {
     }
 
     @PostMapping("/update-diary")
-    @ResponseBody 
     public String updateDiary(@RequestParam Long id, @RequestParam String content) {
         Diary diary = diaryRepository.findById(id).orElse(null);
         if (diary != null) {
             diary.setContent(content);
             diaryRepository.save(diary);
-            return "OK";
         }
-        return "Error";
+        return "redirect:/diary"; // Load lại trang ngay sau khi lưu để thấy thay đổi
     }
 
     @PostMapping("/delete-diary")
@@ -134,7 +117,7 @@ public class WebController {
         return "redirect:/diary";
     }
 
-    // --- 3. QUẢN LÝ WRITING (BRAIN DUMP) ---
+    // --- 3. WRITING (BRAIN DUMP) ---
     @GetMapping("/writing")
     public String writingPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -151,7 +134,7 @@ public class WebController {
     @PostMapping("/update-idea")
     public String updateIdea(@RequestParam Long id, @RequestParam String content) {
         Idea idea = ideaRepository.findById(id).orElse(null);
-        if (idea != null && content != null && !content.trim().isEmpty()) {
+        if (idea != null) {
             idea.setContent(content);
             ideaRepository.save(idea);
         }
@@ -164,7 +147,7 @@ public class WebController {
         return "redirect:/writing";
     }
 
-    // --- 4. QUẢN LÝ ACADEMICS (KANBAN) ---
+    // --- 4. ACADEMICS (KANBAN) ---
     @GetMapping("/academics")
     public String academicsPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -182,25 +165,13 @@ public class WebController {
         return "redirect:/academics";
     }
 
-    @PostMapping("/update-academic-task")
-    @ResponseBody
-    public String updateAcademicTask(@RequestParam Long id, @RequestParam String content) {
-        AcademicTask task = academicTaskRepository.findById(id).orElse(null);
-        if (task != null) {
-            task.setContent(content);
-            academicTaskRepository.save(task);
-            return "OK";
-        }
-        return "Error";
-    }
-
     @PostMapping("/delete-academic-task")
     public String deleteAcademicTask(@RequestParam Long id) {
         academicTaskRepository.deleteById(id);
         return "redirect:/academics";
     }
 
-    // --- 5. QUẢN LÝ MEDIA LOG (FIX LỖI MẤT ẢNH) ---
+    // --- 5. MEDIALOG (FIX MẤT ẢNH) ---
     @GetMapping("/medialog")
     public String mediaLogPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
@@ -210,7 +181,6 @@ public class WebController {
 
     @PostMapping("/add-media")
     public String addMedia(@RequestParam String title, @RequestParam String type, @RequestParam String status) {
-        // Khởi tạo ảnh mặc định để không bị trắng card
         mediaItemRepository.save(new MediaItem(null, title, "", status, 5, type));
         return "redirect:/medialog";
     }
@@ -224,9 +194,7 @@ public class WebController {
             if ("status".equals(field)) item.setStatus(value);
             if ("type".equals(field)) item.setType(value);
             if ("rating".equals(field)) item.setRating(Integer.parseInt(value));
-            // Dòng này để lưu link ảnh vào ổ D đây má ơi!
             if ("imageUrl".equals(field)) item.setImageUrl(value); 
-            
             mediaItemRepository.save(item);
             return "OK";
         }
@@ -239,7 +207,42 @@ public class WebController {
         return "redirect:/medialog";
     }
 
-    // --- CÁC MỤC KHÁC (VISION, GALLERY, MUSIC) ---
+    // --- 6. DAILY (LÒNG BIẾT ƠN & CẢM XÚC - ĐÃ THÊM EMOTION EDIT) ---
+    @GetMapping("/daily")
+    public String dailyPage(Model model, HttpSession session) {
+        if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
+        model.addAttribute("dailyList", dailyEntryRepository.findAll());
+        return "daily";
+    }
+
+    @PostMapping("/add-daily")
+    public String addDaily(@RequestParam String date, @RequestParam String grateful, @RequestParam int rating, @RequestParam String emotion) {
+        dailyEntryRepository.save(new DailyEntry(date, grateful, rating, emotion));
+        return "redirect:/daily";
+    }
+
+    @PostMapping("/delete-daily")
+    public String deleteDaily(@RequestParam Long id) {
+        dailyEntryRepository.deleteById(id);
+        return "redirect:/daily";
+    }
+
+    @GetMapping("/update-daily")
+    @ResponseBody
+    public String updateDaily(@RequestParam Long id, @RequestParam String field, @RequestParam String value) {
+        DailyEntry entry = dailyEntryRepository.findById(id).orElse(null);
+        if (entry != null) {
+            if ("date".equals(field)) entry.setDate(value);
+            if ("grateful".equals(field)) entry.setGrateful(value);
+            if ("rating".equals(field)) entry.setRating(Integer.parseInt(value));
+            if ("emotion".equals(field)) entry.setEmotion(value); // Sửa nốt emotion cho má nè
+            dailyEntryRepository.save(entry);
+            return "OK";
+        }
+        return "Error";
+    }
+
+    // --- VISION, GALLERY, MUSIC ---
     @GetMapping("/vision")
     public String visionPage(Model model, HttpSession session) {
         if (session.getAttribute("isLoggedIn") == null) return "redirect:/login";
