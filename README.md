@@ -1,4 +1,5 @@
 # 🐾 My Little Corner
+http://localhost:8080/
 
 A peaceful space to manage daily life, built with Java Spring Boot.
 
